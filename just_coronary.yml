@@ -9,6 +9,11 @@ description: Coronary disease risks postagregator for longevity report.
 requires:
 - dbsnp
 - vcfinfo
+input_columns:
+- dbsnp__rsid
+- base__alt_base
+- base__ref_base
+- vcfinfo__zygosity
 tags:
 - coronary
 - longevity
