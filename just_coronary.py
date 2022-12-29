@@ -98,6 +98,8 @@ class CravatPostAggregator (BasePostAggregator):
         if rsid == '':
             return
 
+        self.ref_homo.process_row(input_data)
+
         if not rsid.startswith('rs'):
             rsid = "rs" + rsid
 
