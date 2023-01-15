@@ -8,7 +8,7 @@ import coronary_ref_homo
 
 
 class CravatPostAggregator (BasePostAggregator):
-    sql_insert = """ INSERT INTO coronary (
+    sql_insert:str = """ INSERT INTO coronary (
                         rsid,
                         gene,
                         risk,
@@ -21,23 +21,23 @@ class CravatPostAggregator (BasePostAggregator):
                         pvalue,
                         weightcolor        
                     ) VALUES (?,?,?,?,?,?,?,?,?,?,?) """
-    ref_homo = coronary_ref_homo.CoronaryRefHomo()
+    ref_homo:coronary_ref_homo.CoronaryRefHomo = coronary_ref_homo.CoronaryRefHomo()
 
     def check(self):
         return True
 
     def setup (self):
         self.ref_homo.init(self, self.sql_insert)
-        modules_path = str(Path(__file__).parent)
-        sql_file = modules_path + "/data/coronary.sqlite"
+        modules_path:str = str(Path(__file__).parent)
+        sql_file:str = modules_path + "/data/coronary.sqlite"
         if Path(sql_file).exists():
-            self.coronary_conn = sqlite3.connect(sql_file)
-            self.coronary_cursor = self.coronary_conn.cursor()
+            self.coronary_conn:sqlite3.Connection = sqlite3.connect(sql_file)
+            self.coronary_cursor:sqlite3.Cursor = self.coronary_conn.cursor()
 
-        self.result_path = Path(self.output_dir, self.run_name + "_longevity.sqlite")
-        self.longevity_conn = sqlite3.connect(self.result_path)
-        self.longevity_cursor = self.longevity_conn.cursor()
-        sql_create = """ CREATE TABLE IF NOT EXISTS coronary (
+        self.result_path:Path = Path(self.output_dir, self.run_name + "_longevity.sqlite")
+        self.longevity_conn:sqlite3.Connection = sqlite3.connect(self.result_path)
+        self.longevity_cursor:sqlite3.Cursor = self.longevity_conn.cursor()
+        sql_create:str = """ CREATE TABLE IF NOT EXISTS coronary (
             id integer NOT NULL PRIMARY KEY,
             rsid text,
             gene text,
@@ -70,14 +70,14 @@ class CravatPostAggregator (BasePostAggregator):
         return
 
 
-    def get_color(self, w, scale = 1.5):
+    def get_color(self, w:float, scale:float = 1.5) -> str:
         w = float(w)
         if w < 0:
             w = w * -1
             w = 1 - w * scale
             if w < 0:
                 w = 0
-            color = format(int(w * 255), 'x')
+            color:str = format(int(w * 255), 'x')
             if len(color) == 1:
                 color = "0" + color
             color = "ff" + color + color
@@ -94,7 +94,7 @@ class CravatPostAggregator (BasePostAggregator):
 
         
     def annotate (self, input_data):
-        rsid = str(input_data['dbsnp__rsid'])
+        rsid:str = str(input_data['dbsnp__rsid'])
         if rsid == '':
             return
 
@@ -103,30 +103,30 @@ class CravatPostAggregator (BasePostAggregator):
         if not rsid.startswith('rs'):
             rsid = "rs" + rsid
 
-        alt = input_data['base__alt_base']
-        ref = input_data['base__ref_base']
+        alt:str = input_data['base__alt_base']
+        ref:str = input_data['base__ref_base']
 
-        query = "SELECT Risk_allele, Gene, Genotype, Conclusion, Weight, PMID, Population, GWAS_study_design, P_value " \
+        query:str = "SELECT Risk_allele, Gene, Genotype, Conclusion, Weight, PMID, Population, GWAS_study_design, P_value " \
                 f"FROM coronary_disease WHERE rsID = '{rsid}';"
 
         self.coronary_cursor.execute(query)
-        rows = self.coronary_cursor.fetchall()
+        rows:list[Any] = self.coronary_cursor.fetchall()
 
         if len(rows) == 0:
             return
 
-        zygot = input_data['vcfinfo__zygosity']
-        genome = alt + "/" + ref
-        gen_set = {alt, ref}
+        zygot:str = input_data['vcfinfo__zygosity']
+        genome:str = alt + "/" + ref
+        gen_set:set[str] = {alt, ref}
         if zygot == 'hom':
             genome = alt + "/" + alt
             gen_set = {alt, alt}
         for row in rows:
             allele = row[0]
-            row_gen = {row[2][0], row[2][1]}
+            row_gen:set[str] = {row[2][0], row[2][1]}
 
             if gen_set == row_gen:
-                task = (rsid, row[1], allele, genome, row[3], float(row[4]), row[5], row[6], row[7],
+                task:tuple = (rsid, row[1], allele, genome, row[3], float(row[4]), row[5], row[6], row[7],
                         row[8], self.get_color(row[4], 0.6))
                 self.longevity_cursor.execute(self.sql_insert, task)
 
