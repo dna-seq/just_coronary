@@ -7,15 +7,16 @@ class CoronaryRefHomo:
 
     rsid_map:dict[str, dict] = {}
 
-    def init(self, reporter, sql_insert:str) -> None:
-        self.parent = reporter
+
+    def setup(self, parent, result_cursor:sqlite3.Cursor, data_cursor:sqlite3.Cursor, sql_insert:str) -> None:
+        self.parent = parent
         self.sql_insert = sql_insert
+        self.result_cursor: sqlite3.Cursor = result_cursor
+        self.data_cursor: sqlite3.Cursor = data_cursor
 
-
-    def setup(self) -> None:
         sql:str = "SELECT rsID, Risk_allele FROM coronary_disease WHERE Ref_allele = Risk_allele"
-        self.parent.coronary_cursor.execute(sql)
-        rows:list = self.parent.coronary_cursor.fetchall()
+        self.data_cursor.execute(sql)
+        rows:list = self.data_cursor.fetchall()
         for rsid, risk_allele in rows:
             self.rsid_map[rsid] = {'exist':True, 'risk':risk_allele}
 
@@ -42,9 +43,9 @@ class CoronaryRefHomo:
                 query:str = "SELECT Risk_allele, Gene, Genotype, Conclusion, Weight, PMID, Population, GWAS_study_design, P_value " \
                         f"FROM coronary_disease WHERE rsID = '{rsid}' AND Genotype = '{risk}';"
 
-                self.parent.coronary_cursor.execute(query)
-                row:list = self.parent.coronary_cursor.fetchone()
+                self.data_cursor.execute(query)
+                row:list = self.data_cursor.fetchone()
                 if row:
                     task:tuple = (rsid, row[1], row[0], row[0]+"/"+row[0], row[3], row[4], row[5], row[6], row[7], row[8],
                             self.parent.get_color(row[4], 0.6))
-                    self.parent.longevity_cursor.execute(self.sql_insert, task)
+                    self.result_cursor.execute(self.sql_insert, task)
