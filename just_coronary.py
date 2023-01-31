@@ -129,8 +129,6 @@ class CravatPostAggregator (BasePostAggregator):
                         row[8], self.get_color(row[4], 0.6))
                 self.result_cursor.execute(self.sql_insert, task)
 
-        return {"col1":""}
-
 
     def postprocess(self):
         self.ref_homo.end()
