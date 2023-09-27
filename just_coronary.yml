@@ -1,6 +1,6 @@
 title: Coronary disease postagregator
-version: 0.1.1
-data_version: 0.1.0
+version: 0.1.2
+data_version: 0.1.1
 type: postaggregator
 name: just_coronary
 level: variant
@@ -35,3 +35,4 @@ developer:
 release_note:
   0.1.0: first version
   0.1.1: small fixes
+  0.1.2: changes in the database and bug fix
