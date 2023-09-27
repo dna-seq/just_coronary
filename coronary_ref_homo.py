@@ -14,7 +14,7 @@ class CoronaryRefHomo:
         self.result_cursor: sqlite3.Cursor = result_cursor
         self.data_cursor: sqlite3.Cursor = data_cursor
 
-        sql:str = "SELECT rsID, Risk_allele FROM coronary_disease WHERE Ref_allele = Risk_allele"
+        sql:str = "SELECT rsID, Risk_allele FROM coronary_disease WHERE state = 'ref' AND zygosity = 'hom'"
         self.data_cursor.execute(sql)
         rows:list = self.data_cursor.fetchall()
         for rsid, risk_allele in rows:
